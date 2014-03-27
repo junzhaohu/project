@@ -1,28 +1,21 @@
-2014 Winter Olympics 
+Final Project Outline  Junzhao Hu
 ========================================================
-Team: Jennifer Chang (jenchang), Samantha Tyner (sctyner), Junzhao Hu (junhu)
+Topic Name: How to avoid incovenience in taking flight.
 
-**Load Required Libraries**
-```{r message=FALSE}
-library(ggplot2)
-library(GGally)
-library(XML)
-library(plyr)
-library(dplyr)
-```
+Below is the link for the data, I downloaded data for October, November and December of 2013.
 
-Exercise 1: Gold, Silver and Bronze Medals by Country
------------
-* The Winter Olympics have just finished.  Time to look at the results.
-* Go to the winter olympic games website.
-* Navigate to the medal counts, [medal counts](http://www.sochi2014.com/en/medal-standings)
-* Use the readHTMLTable() function of the XML library to pull out the medal table.
-* Make a scatterplot matrix of the Gold, Silver, Bronze counts
-* Write a paragraph summarizing the association between medal counts.
+I am interested in several things:
+
+1 Is there a day of the week/ time of day effect on departure or arrival delays
+2 Which city(Origin and Destination) cancels or delays the most.
+3 Which Carrier delays or cancels most.
+4 What kind of factors affect the delay time of the flight(like distance,depart time, arrive time)
+5 Which company(UniqueCarrier) delays or cancels most.
+
 
 **Links:**
-* [Class Website: http://dicook.github.io/stat585/index.html](http://dicook.github.io/stat585/index.html)
-* [medal counts: http://www.sochi2014.com/en/medal-standings](http://www.sochi2014.com/en/medal-standings)
+* [http://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time]
+
 
 
 Fetch 2014 Olympic Medal Counts
