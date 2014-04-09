@@ -2,7 +2,7 @@ Final Project Outline  Junzhao Hu
 ========================================================
 Topic Name: How to avoid incovenience in taking flight.
 
-Below is the link for the data, I downloaded data for November and December of 2013.
+Below is the link for the data, I downloaded data for  November and December of 2013.
 
 I am interested in several things:
 
@@ -16,7 +16,7 @@ I am interested in several things:
 
 5 Which company(UniqueCarrier) delays or cancels most.
 
-6 We mainly take Dallas/Fort Worth (DFW) Airportt as Origin or Destination, to find out
+6  We mainly take Dallas/Fort Worth (DFW) Airport as Origin or Destination, to find out
 what kind of factors affect the delay and cancels of flight here.
 
 Several interesting questions to be continued.
@@ -107,7 +107,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Wed Apr  9 10:42:49 2014
+## % Wed Apr  9 13:42:12 2014
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Description of Table Columns} 
