@@ -30,6 +30,7 @@ We used the following packages in this lab report:
 ```{r}
 library(ggplot2)
 library(XML)
+library(DBI)
 library(RSQLite)
 library(dplyr)
 library(xtable)
@@ -90,6 +91,7 @@ begin an analysis.
 Connecting to the database using:
 
 ```{r}
+library("RSQLite.extfuns")
  my_db <- src_sqlite('flights')
 ```
 We can get the number of rows using 
@@ -102,8 +104,8 @@ We decided to use Des Moines Internatioal Airport (DSM).
 #qry will now work as a connector to the table 'myFlights' in my_db
    qry <- tbl(my_db, 'myFlights')
 
-   #We only want to connect to when Origin is 'DSM'
-   qry <- filter(qry, Origin == 'DSM')
+   #We only want to connect to when Origin is 'DFW'
+   qry <- filter(qry, Origin == 'DFW')
 
    #Lets get all those observations
    dfw1=collect(qry)
@@ -111,7 +113,7 @@ We decided to use Des Moines Internatioal Airport (DSM).
    #and make an ugly plot
    qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
 
-   dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
+   dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dsm1$DepTime/100)-round(dsm1$DepTime/100)) 
    dfw1$gross.hour <- round(dfw1$gross.time/60)
 
    qplot(as.factor(gross.hour),DepDelay, fill=Carrier, data=dfw1, geom='boxplot')+facet_wrap(~Carrier)
@@ -130,8 +132,24 @@ Some airlines seem to be worse during the day in general. For instance UA has
 several midday flights where the number of delayed departures grows (the boxplots 
 become visible by 8:00 AM) 
 
+```{r}
+ qry2 <- filter(qry, Dest == 'DFW')
 
+   dfw2=collect(qry2)
+   dfw3 <- rbind(dfw1,dfw2)
 
+   can.d <-    ddply(dfw3, .(Carrier,DayOfWeek), summarise,
+      total.flights.can=sum(Cancelled,na.rm=T),
+      prop.flights.can = mean(Cancelled,na.rm=T)
+   )
+   qplot(DayOfWeek, prop.flights.can,color=Carrier,data=can.d,geom='line')+facet_wrap(~Carrier)
+   qplot(as.logical(Cancelled), Distance,color=Carrier,data=dfw3,geom='boxplot') + facet_wrap(~Carrier)
+```
+
+Flights that occur later in the week and on the weekend are more often cancelled,
+with airlines EV, MQ and 9E cancelling more than 15\% of flights. 9E is more likely to cancel 
+long flights while EV is more likely to cancel shorter flights. The rest of the 
+airlines seem to have no relationship between flight length and cancellation.
 
 
  -->
