@@ -16,7 +16,7 @@ I am interested in several things:
 
 5 Which company(UniqueCarrier) delays or cancels most.
 
-6 Since we are in Ames, so we mainly take Des Moines International Airport as Origin or Destination, to find out
+6 We mainly take Des Moines International Airport as Origin or Destination, to find out
 what kind of factors affect the delay and cancels of flight here.
 
 Several interesting questions to be continued.
