@@ -2,7 +2,7 @@ Final Project Outline  Junzhao Hu
 ========================================================
 Topic Name: How to avoid incovenience in taking flight.
 
-Below is the link for the data, I downloaded data for October, November and December of 2013.
+Below is the link for the data, I downloaded data for November and December of 2013.
 
 I am interested in several things:
 
@@ -16,7 +16,7 @@ I am interested in several things:
 
 5 Which company(UniqueCarrier) delays or cancels most.
 
-6 We mainly take Des Moines International Airport as Origin or Destination, to find out
+6 We mainly take Dallas/Fort Worth (DFW) Airportt as Origin or Destination, to find out
 what kind of factors affect the delay and cancels of flight here.
 
 Several interesting questions to be continued.
@@ -280,7 +280,7 @@ qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "box
 
 
 Flights that occur later in the week and on the weekend are more often cancelled,
-with airlines EV, MQ and 9E cancelling more than 15\% of flights. 9E is more likely to cancel 
+with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more likely to cancel 
 long flights while EV is more likely to cancel shorter flights. The rest of the 
 airlines seem to have no relationship between flight length and cancellation.
 

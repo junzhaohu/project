@@ -2,7 +2,7 @@ Final Project Outline  Junzhao Hu
 ========================================================
 Topic Name: How to avoid incovenience in taking flight.
 
-Below is the link for the data, I downloaded data for October, November and December of 2013.
+Below is the link for the data, I downloaded data for  November and December of 2013.
 
 I am interested in several things:
 
@@ -147,7 +147,7 @@ become visible by 8:00 AM)
 ```
 
 Flights that occur later in the week and on the weekend are more often cancelled,
-with airlines EV, MQ and 9E cancelling more than 15\% of flights. 9E is more likely to cancel 
+with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more likely to cancel 
 long flights while EV is more likely to cancel shorter flights. The rest of the 
 airlines seem to have no relationship between flight length and cancellation.
 
