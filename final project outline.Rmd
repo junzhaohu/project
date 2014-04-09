@@ -113,7 +113,7 @@ We decided to use Des Moines Internatioal Airport (DSM).
    #and make an ugly plot
    qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
 
-   dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dsm1$DepTime/100)-round(dsm1$DepTime/100)) 
+   dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
    dfw1$gross.hour <- round(dfw1$gross.time/60)
 
    qplot(as.factor(gross.hour),DepDelay, fill=Carrier, data=dfw1, geom='boxplot')+facet_wrap(~Carrier)

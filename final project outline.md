@@ -31,14 +31,8 @@ We used the following packages in this lab report:
 ```r
 library(ggplot2)
 library(XML)
+library(DBI)
 library(RSQLite)
-```
-
-```
-## Loading required package: DBI
-```
-
-```r
 library(dplyr)
 ```
 
@@ -113,7 +107,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Wed Apr  9 09:23:18 2014
+## % Wed Apr  9 10:42:49 2014
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Description of Table Columns} 
@@ -172,11 +166,8 @@ Connecting to the database using:
 
 
 ```r
+library("RSQLite.extfuns")
 my_db <- src_sqlite("flights")
-```
-
-```
-## Loading required package: RSQLite.extfuns
 ```
 
 We can get the number of rows using 
@@ -201,8 +192,8 @@ We decided to use Des Moines Internatioal Airport (DSM).
 # qry will now work as a connector to the table 'myFlights' in my_db
 qry <- tbl(my_db, "myFlights")
 
-# We only want to connect to when Origin is 'DSM'
-qry <- filter(qry, Origin == "DSM")
+# We only want to connect to when Origin is 'DFW'
+qry <- filter(qry, Origin == "DFW")
 
 # Lets get all those observations
 dfw1 = collect(qry)
@@ -225,12 +216,19 @@ qplot(as.factor(gross.hour), DepDelay, fill = Carrier, data = dfw1, geom = "boxp
 ```
 
 ```
-## Warning: Removed 6 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 8 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 19 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 1667 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 4 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 20 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 309 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 1 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 1146 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 26 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 14 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 41 rows containing non-finite values (stat_boxplot).
 ## Warning: Removed 16 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 36 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
+## Warning: Removed 5 rows containing non-finite values (stat_boxplot).
 ```
 
 ![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-102.png) 
@@ -250,7 +248,41 @@ several midday flights where the number of delayed departures grows (the boxplot
 become visible by 8:00 AM) 
 
 
+```r
+qry2 <- filter(qry, Dest == "DFW")
 
+dfw2 = collect(qry2)
+dfw3 <- rbind(dfw1, dfw2)
+
+can.d <- ddply(dfw3, .(Carrier, DayOfWeek), summarise, total.flights.can = sum(Cancelled, 
+    na.rm = T), prop.flights.can = mean(Cancelled, na.rm = T))
+```
+
+```
+## Error: could not find function "ddply"
+```
+
+```r
+qplot(DayOfWeek, prop.flights.can, color = Carrier, data = can.d, geom = "line") + 
+    facet_wrap(~Carrier)
+```
+
+```
+## Error: object 'can.d' not found
+```
+
+```r
+qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "boxplot") + 
+    facet_wrap(~Carrier)
+```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+
+
+Flights that occur later in the week and on the weekend are more often cancelled,
+with airlines EV, MQ and 9E cancelling more than 15\% of flights. 9E is more likely to cancel 
+long flights while EV is more likely to cancel shorter flights. The rest of the 
+airlines seem to have no relationship between flight length and cancellation.
 
 
  -->
