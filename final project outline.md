@@ -50,6 +50,19 @@ library(dplyr)
 ```
 
 ```r
+library(plyr)
+```
+
+```
+## 
+## Attaching package: 'plyr'
+## 
+## The following objects are masked from 'package:dplyr':
+## 
+##     arrange, desc, failwith, id, mutate, summarise
+```
+
+```r
 library(xtable)
 ```
 
@@ -62,7 +75,7 @@ a database as demonstrated in the lab slides:
 my_db <- dbConnect(dbDriver("SQLite"), dbname = "flights")
 ```
 
-This creates a file called \verb!flights! in the current working directory.
+This creates a file called flights in the current working directory.
 
 
 In order to build the database we downloaded for On-Time Performance,
@@ -98,7 +111,7 @@ choose the following variables from the set:
 
 ```r
 choose.cols <- c("DayOfWeek", "FlightDate", "DepTime", "Carrier", "DepDelay", 
-    "TaxiOut", "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", 
+    "ArrDelay", "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", 
     "LateAircraftDelay", "Cancelled", "Dest", "Origin", "Distance")
 codebook.use <- codebook[which(codebook[, 1] %in% choose.cols), ]
 codebook.table <- xtable(codebook.use, align = "p{1cm}p{3cm}p{7cm}", caption = "Description of Table Columns")
@@ -107,7 +120,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Wed Apr  9 13:42:12 2014
+## % Mon Apr 21 09:28:08 2014
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Description of Table Columns} 
@@ -122,7 +135,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ##   Dest & Destination Airport \\ 
 ##   DepTime & Actual Departure Time (local time: hhmm) \\ 
 ##   DepDelay & Difference in minutes between scheduled and actual departure time. Early departures show negative numbers. \\ 
-##   TaxiOut & Taxi Out Time, in Minutes \\ 
+##   ArrDelay & Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers. \\ 
 ##   Cancelled & Cancelled Flight Indicator (1=Yes) \\ 
 ##   Distance & Distance between airports (miles) \\ 
 ##   CarrierDelay & Carrier Delay, in Minutes \\ 
@@ -135,7 +148,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ## \end{table}
 ```
 
-We can add this file to our database using hte following:
+We can add this file to our database using the following:
 
 ```r
 nov.db <- dbWriteTable(my_db, "myFlights", nov.d[, choose.cols], overwrite = TRUE)
@@ -185,8 +198,7 @@ tbl(my_db, sql("SELECT COUNT(*) FROM myFlights"))
 ## ..      ...
 ```
 
-
-We decided to use Des Moines Internatioal Airport (DSM). 
+We decided to use Des Moines Internatioal Airport (DFW) as orgin. 
 
 ```r
 # qry will now work as a connector to the table 'myFlights' in my_db
@@ -256,27 +268,18 @@ dfw3 <- rbind(dfw1, dfw2)
 
 can.d <- ddply(dfw3, .(Carrier, DayOfWeek), summarise, total.flights.can = sum(Cancelled, 
     na.rm = T), prop.flights.can = mean(Cancelled, na.rm = T))
-```
-
-```
-## Error: could not find function "ddply"
-```
-
-```r
 qplot(DayOfWeek, prop.flights.can, color = Carrier, data = can.d, geom = "line") + 
     facet_wrap(~Carrier)
 ```
 
-```
-## Error: object 'can.d' not found
-```
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-111.png) 
 
 ```r
 qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "boxplot") + 
     facet_wrap(~Carrier)
 ```
 
-![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-112.png) 
 
 
 Flights that occur later in the week and on the weekend are more often cancelled,

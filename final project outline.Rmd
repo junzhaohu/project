@@ -33,6 +33,7 @@ library(XML)
 library(DBI)
 library(RSQLite)
 library(dplyr)
+library(plyr)
 library(xtable)
 ```
 
@@ -42,7 +43,7 @@ a database as demonstrated in the lab slides:
 ```{r}
  my_db <- dbConnect(dbDriver('SQLite'),dbname='flights')
 ```
-This creates a file called \verb!flights! in the current working directory.
+This creates a file called flights in the current working directory.
 
 
 In order to build the database we downloaded for On-Time Performance,
@@ -65,15 +66,14 @@ codebook <- readHTMLTable(url)[[7]][,1:2]
 After examining the variable descriptions, we decided to 
 choose the following variables from the set:
 ```{r}
-choose.cols <- c("DayOfWeek", "FlightDate", "DepTime","Carrier", "DepDelay","TaxiOut",
-                     "CarrierDelay", "WeatherDelay","NASDelay","SecurityDelay",
-                     "LateAircraftDelay",
-                     "Cancelled", "Dest", "Origin", "Distance")
+choose.cols <- c("DayOfWeek","DayofMonth","TailNum", "FlightDate", "DepTime","Carrier", 
+                 "DepDelay","ArrDelay","CarrierDelay", "WeatherDelay",
+                     "LateAircraftDelay","Cancelled", "Dest", "Origin", "Distance")
    codebook.use <- codebook[which(codebook[,1] %in% choose.cols),]
    codebook.table <- xtable(codebook.use,align='p{1cm}p{3cm}p{7cm}',caption='Description of Table Columns')
    print(codebook.table,include.rownames=FALSE,caption.placement='top')
 ```
-We can add this file to our database using hte following:
+We can add this file to our database using the following:
 ```{r}
 nov.db <- dbWriteTable(my_db, 'myFlights', nov.d[,choose.cols], overwrite=TRUE)
 dbListTables(my_db)
@@ -98,8 +98,7 @@ We can get the number of rows using
 ```{r}
 tbl(my_db,sql('SELECT COUNT(*) FROM myFlights'))
 ```
-
-We decided to use Des Moines Internatioal Airport (DSM). 
+We decided to use Dallas/Fort Worth Airport (DFW) as orgin. 
 ```{r}
 #qry will now work as a connector to the table 'myFlights' in my_db
    qry <- tbl(my_db, 'myFlights')
@@ -109,8 +108,7 @@ We decided to use Des Moines Internatioal Airport (DSM).
 
    #Lets get all those observations
    dfw1=collect(qry)
-
-   #and make an ugly plot
+#and make an ugly plot
    qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
 
    dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
@@ -138,12 +136,14 @@ become visible by 8:00 AM)
    dfw2=collect(qry2)
    dfw3 <- rbind(dfw1,dfw2)
 
-   can.d <-    ddply(dfw3, .(Carrier,DayOfWeek), summarise,
+   can.d <-ddply(dfw3, .(Carrier,DayOfWeek), summarise,
       total.flights.can=sum(Cancelled,na.rm=T),
       prop.flights.can = mean(Cancelled,na.rm=T)
    )
    qplot(DayOfWeek, prop.flights.can,color=Carrier,data=can.d,geom='line')+facet_wrap(~Carrier)
+
    qplot(as.logical(Cancelled), Distance,color=Carrier,data=dfw3,geom='boxplot') + facet_wrap(~Carrier)
+
 ```
 
 Flights that occur later in the week and on the weekend are more often cancelled,
@@ -151,5 +151,14 @@ with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more like
 long flights while EV is more likely to cancel shorter flights. The rest of the 
 airlines seem to have no relationship between flight length and cancellation.
 
+What's the reason for so many cancelations? Is there a day that has very bad weather?
+```{r}
+can.dm <-ddply(dfw3, .(Carrier,DayofMonth), summarise,
+      mtotal.flights.can=sum(Cancelled,na.rm=T),
+      mprop.flights.can = mean(Cancelled,na.rm=T)
+   )
+   qplot(DayofMonth, mprop.flights.can,color=Carrier,data=can.dm,geom='line')+facet_wrap(~Carrier)
+```
+From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation. After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to nearly 1000 flights canceled.
 
  -->
