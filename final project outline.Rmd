@@ -159,6 +159,8 @@ can.dm <-ddply(dfw3, .(Carrier,DayofMonth), summarise,
    )
    qplot(DayofMonth, mprop.flights.can,color=Carrier,data=can.dm,geom='line')+facet_wrap(~Carrier)
 ```
-From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation. After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to nearly 1000 flights canceled.
+From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
+
+After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to nearly 1000 flights canceled.
 
  -->

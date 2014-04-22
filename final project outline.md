@@ -110,9 +110,9 @@ After examining the variable descriptions, we decided to
 choose the following variables from the set:
 
 ```r
-choose.cols <- c("DayOfWeek", "FlightDate", "DepTime", "Carrier", "DepDelay", 
-    "ArrDelay", "CarrierDelay", "WeatherDelay", "NASDelay", "SecurityDelay", 
-    "LateAircraftDelay", "Cancelled", "Dest", "Origin", "Distance")
+choose.cols <- c("DayOfWeek", "DayofMonth", "TailNum", "FlightDate", "DepTime", 
+    "Carrier", "DepDelay", "ArrDelay", "CarrierDelay", "WeatherDelay", "LateAircraftDelay", 
+    "Cancelled", "Dest", "Origin", "Distance")
 codebook.use <- codebook[which(codebook[, 1] %in% choose.cols), ]
 codebook.table <- xtable(codebook.use, align = "p{1cm}p{3cm}p{7cm}", caption = "Description of Table Columns")
 print(codebook.table, include.rownames = FALSE, caption.placement = "top")
@@ -120,7 +120,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Mon Apr 21 09:28:08 2014
+## % Mon Apr 21 23:26:14 2014
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Description of Table Columns} 
@@ -128,9 +128,11 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ##   \hline
 ## Variable & Description \\ 
 ##   \hline
-## DayOfWeek & Day of Week \\ 
+## DayofMonth & Day of Month \\ 
+##   DayOfWeek & Day of Week \\ 
 ##   FlightDate & Flight Date (yyyymmdd) \\ 
 ##   Carrier & Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code. \\ 
+##   TailNum & Tail Number \\ 
 ##   Origin & Origin Airport \\ 
 ##   Dest & Destination Airport \\ 
 ##   DepTime & Actual Departure Time (local time: hhmm) \\ 
@@ -140,8 +142,6 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ##   Distance & Distance between airports (miles) \\ 
 ##   CarrierDelay & Carrier Delay, in Minutes \\ 
 ##   WeatherDelay & Weather Delay, in Minutes \\ 
-##   NASDelay & National Air System Delay, in Minutes \\ 
-##   SecurityDelay & Security Delay, in Minutes \\ 
 ##   LateAircraftDelay & Late Aircraft Delay, in Minutes \\ 
 ##    \hline
 ## \end{tabular}
@@ -198,7 +198,7 @@ tbl(my_db, sql("SELECT COUNT(*) FROM myFlights"))
 ## ..      ...
 ```
 
-We decided to use Des Moines Internatioal Airport (DFW) as orgin. 
+We decided to use Dallas/Fort Worth Airport (DFW) as orgin. 
 
 ```r
 # qry will now work as a connector to the table 'myFlights' in my_db
@@ -209,7 +209,6 @@ qry <- filter(qry, Origin == "DFW")
 
 # Lets get all those observations
 dfw1 = collect(qry)
-
 # and make an ugly plot
 qplot(log(DepDelay), geom = "density", alpha = 0.1, facets = DayOfWeek ~ ., 
     fill = as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0), ])
@@ -275,6 +274,7 @@ qplot(DayOfWeek, prop.flights.can, color = Carrier, data = can.d, geom = "line")
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-111.png) 
 
 ```r
+
 qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "boxplot") + 
     facet_wrap(~Carrier)
 ```
@@ -287,5 +287,19 @@ with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more like
 long flights while EV is more likely to cancel shorter flights. The rest of the 
 airlines seem to have no relationship between flight length and cancellation.
 
+What's the reason for so many cancelations? Is there a day that has very bad weather?
+
+```r
+can.dm <- ddply(dfw3, .(Carrier, DayofMonth), summarise, mtotal.flights.can = sum(Cancelled, 
+    na.rm = T), mprop.flights.can = mean(Cancelled, na.rm = T))
+qplot(DayofMonth, mprop.flights.can, color = Carrier, data = can.dm, geom = "line") + 
+    facet_wrap(~Carrier)
+```
+
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12.png) 
+
+From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
+
+After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to nearly 1000 flights canceled.
 
  -->
