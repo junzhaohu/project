@@ -1,6 +1,6 @@
 Final Project Outline  Junzhao Hu
 ========================================================
-Topic Name: How to avoid incovenience in taking flight.
+Topic Name: How to avoid incovenience in taking flight in Dallas/Fort Worth Airport (DFW).
 
 Below is the link for the data, I downloaded data for  November and December of 2013.
 
@@ -16,12 +16,7 @@ I am interested in several things:
 
 5 Which company(UniqueCarrier) delays or cancels most.
 
-6  We mainly take Dallas/Fort Worth (DFW) Airport as Origin or Destination, to find out
-what kind of factors affect the delay and cancels of flight here.
 
-Several interesting questions to be continued.
-
-Using SQL to clean to clean the data...
 
 **Links:**
 * [http://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time]
@@ -100,12 +95,10 @@ We can get the number of rows using
 ```{r}
 tbl(my_db,sql('SELECT COUNT(*) FROM myFlights'))
 ```
-We decided to use Dallas/Fort Worth Airport (DFW) as orgin. 
+We use Dallas/Fort Worth Airport (DFW) as orgin. 
 ```{r}
 #qry will now work as a connector to the table 'myFlights' in my_db
    qry <- tbl(my_db, 'myFlights')
-
-
 
    #We only want to connect to when Origin is 'DFW'
    qry1 <- filter(qry, Origin == 'DFW')
@@ -125,8 +118,10 @@ ggplot(delay, aes(dist, delay)) +
   geom_smooth() +
   scale_size_area()
 ```
-The average delay is more for middle average distance(600-900) than that of short and long average distance.
-```
+Most filghts are middle distance or short distance flights.
+
+The average delay rate of middle average distance(600-900) flights is mmore  than that of short(<600) and long average distance(>900).
+```{r}
 destinations <- group_by(dfw1, Dest)
 destairp<-dplyr::summarise(destinations,
   planes = n_distinct(TailNum),
@@ -139,17 +134,23 @@ arrange(destairp,desc(flights))
 origins <- group_by(dfw2, Origin)
 oriairp<-dplyr::summarise(origins,
   planes1 = n_distinct(TailNum),
-  flights1=n()
+  flights1=n(),
+  mprop.flights1.can = mean(Cancelled,na.rm=T)
 )
 arrange(oriairp,desc(flights1))
+daf<-arrange(oriairp,desc(mprop.flights1.can))
+daf<-filter(daf,flights1>500)
+qplot(as.factor(Origin),mprop.flights1.can,data=daf)
 ```
 From the reslut, the first five most frequenly connected airports with DFW are LAX,ATL,DEN,ORD and SFO.
-```
+For total flights more than 500, flights go to HOU airport have the highest cancelation rate from DFW airport.
+```{r}
+qry <- tbl(my_db, "myFlights")
+qry1 <- filter(qry, Origin == "DFW")
+# Lets get all those observations
+dfw1 = collect(qry1)
 #and make an ugly plot
    qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
-
-
-
    dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
    dfw1$gross.hour <- round(dfw1$gross.time/60)
 
@@ -168,8 +169,9 @@ and OO which has no on time flights after 10:00 PM).
 Some airlines seem to be worse during the day in general. For instance UA has 
 several midday flights where the number of delayed departures grows (the boxplots 
 become visible by 8:00 AM) 
-
 ```{r}
+   qry1 <- filter(qry, Origin == 'DFW')
+   dfw1=collect(qry1)
    qry2 <- filter(qry, Dest == 'DFW')
    dfw2=collect(qry2)
    dfw3 <- rbind(dfw1,dfw2)
@@ -181,9 +183,7 @@ become visible by 8:00 AM)
    qplot(DayOfWeek, prop.flights.can,color=Carrier,data=can.d,geom='line')+facet_wrap(~Carrier)
 
    qplot(as.logical(Cancelled), Distance,color=Carrier,data=dfw3,geom='boxplot') + facet_wrap(~Carrier)
-
 ```
-
 Flights that occur later in the week and on the weekend are more often cancelled,
 with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more likely to cancel 
 long flights while EV is more likely to cancel shorter flights. The rest of the 
@@ -192,10 +192,10 @@ airlines seem to have no relationship between flight length and cancellation.
 What's the reason for so many cancelations? Is there a day that has very bad weather?
 ```{r}
 can.dm <-ddply(dfw3, .(Carrier,DayofMonth), summarise,
-      mtotal.flights.can=sum(Cancelled,na.rm=T),
-      mprop.flights.can = mean(Cancelled,na.rm=T)
+      mtotal.flights.can1=sum(Cancelled,na.rm=T),
+      mprop.flights.can1 = mean(Cancelled,na.rm=T)
    )
-   qplot(DayofMonth, mprop.flights.can,color=Carrier,data=can.dm,geom='line')+facet_wrap(~Carrier)
+   qplot(DayofMonth, mprop.flights.can1,color=Carrier,data=can.dm,geom='line')+facet_wrap(~Carrier)
 ```
 From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
 
