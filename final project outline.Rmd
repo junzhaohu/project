@@ -33,8 +33,7 @@ library(xtable)
 library(dplyr)
 ```
 
-The package RSQLite can be used as in the example to create
-a database as demonstrated in the lab slides:
+The package RSQLite can be used as in the example to create a database:
 
 ```{r}
  my_db <- dbConnect(dbDriver('SQLite'),dbname='flights')
@@ -89,7 +88,7 @@ Connecting to the database using:
 
 ```{r}
 library("RSQLite.extfuns")
- my_db <- src_sqlite('flights')
+my_db <- src_sqlite('flights')
 ```
 We can get the number of rows using 
 ```{r}
@@ -105,7 +104,7 @@ We use Dallas/Fort Worth Airport (DFW) as orgin.
    
    #Lets get all those observations
    dfw1=collect(qry1)
-
+# Find out the relation between distance and arrival delay.
 planes <- group_by(dfw1, TailNum)
 delay <- dplyr::summarise(planes,
   count = n(),
@@ -123,6 +122,7 @@ Most filghts are middle distance or short distance flights.
 The average delay rate of middle average distance(600-900) flights is more than that of short and long average distance.
 
 ```{r}
+# Find out the airports that are closedly connceted to DFW.
 destinations <- group_by(dfw1, Dest)
 destairp<-dplyr::summarise(destinations,
   planes = n_distinct(TailNum),
@@ -140,11 +140,12 @@ oriairp<-dplyr::summarise(origins,
 )
 arrange(oriairp,desc(flights1))
 daf<-arrange(oriairp,desc(mprop.flights1.can))
-daf<-filter(daf,flights1>500)
-qplot(as.factor(Origin),mprop.flights1.can,data=daf)
+ggplot(daf, aes(as.factor(Origin), mprop.flights1.can)) +geom_point(aes(size = flights1), alpha = 1/2)
+daf1<-filter(daf,flights1>500)
+qplot(as.factor(Origin),mprop.flights1.can,data=daf1)
 ```
 From the reslut, the first five most frequenly connected airports with DFW are LAX,ATL,DEN,ORD and SFO.
-For total flights more than 500, flights go to HOU airport have the highest cancelation rate from DFW airport.
+For total flights more than 500, flights go to HOU airport have the highest cancelation rate(12%) from DFW airport.
 ```{r}
 qry <- tbl(my_db, "myFlights")
 qry1 <- filter(qry, Origin == "DFW")
@@ -154,9 +155,10 @@ dfw1 = collect(qry1)
    qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
    dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
    dfw1$gross.hour <- round(dfw1$gross.time/60)
-
+   plot(WeatherDelay,data=dfw1)
    qplot(as.factor(gross.hour),DepDelay, fill=Carrier, data=dfw1, geom='boxplot')+facet_wrap(~Carrier)
 ```
+
 Notice from the boxplots that the time of delay grows for 
 most airlines over the course
 of the day. This may be due to a domino effect as one late 
@@ -190,7 +192,7 @@ with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more like
 long flights while EV is more likely to cancel shorter flights. The rest of the 
 airlines seem to have no relationship between flight length and cancellation.
 
-What's the reason for so many cancelations? Is there a day that has very bad weather?
+What's the reason for so many delays and cancelations? Is there a day that has very bad weather?
 ```{r}
 can.dm <-ddply(dfw3, .(Carrier,DayofMonth), summarise,
       mtotal.flights.can1=sum(Cancelled,na.rm=T),
