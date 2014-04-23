@@ -1,6 +1,6 @@
-Final Project Outline  Junzhao Hu
+Final Project  Junzhao Hu
 ========================================================
-Topic Name: How to avoid incovenience in taking flight in Dallas/Fort Worth Airport (DFW).
+Topic Name: About the flight data of Dallas/Fort Worth Airport (DFW).
 
 Below is the link for the data, I downloaded data for  November and December of 2013.
 
@@ -8,13 +8,13 @@ I am interested in several things:
 
 1 Is there a day of the week/ time of day effect on departure or arrival delays
 
-2 Which city(Origin and Destination) cancels or delays the most.
+2 Which airports cancel or delay the most from Dallas/Fort Worth Airport (DFW).
 
 3 Which Carrier delays or cancels most.
 
 4 What kind of factors affect the delay time of the flight(like distance,depart time, arrive time)
 
-5 Which company(UniqueCarrier) delays or cancels most.
+5 What's the main reason for the delay and cancelation.
 
 
 
@@ -64,7 +64,7 @@ This creates a file called flights in the current working directory.
 
 
 In order to build the database we downloaded for On-Time Performance,
-we downloaded the "Prezipped File" for November and December 2013 from
+we downloaded the zipped File for November and December 2013 from
 
 
 ```r
@@ -100,32 +100,41 @@ choose.cols <- c("DayOfWeek", "DayofMonth", "TailNum", "FlightDate", "DepTime",
     "Cancelled", "Dest", "Origin", "Distance")
 codebook.use <- codebook[which(codebook[, 1] %in% choose.cols), ]
 codebook.table <- xtable(codebook.use, align = "p{1cm}p{3cm}p{7cm}", caption = "Description of Table Columns")
-# print(codebook.table,include.rownames=FALSE,caption.placement='top')
-print(codebook.table, type = "html")
+print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ```
 
 ```
-## <!-- html table generated in R 3.0.2 by xtable 1.7-3 package -->
-## <!-- Tue Apr 22 21:31:00 2014 -->
-## <TABLE border=1>
-## <CAPTION ALIGN="bottom"> Description of Table Columns </CAPTION>
-## <TR> <TH>  </TH> <TH> Variable </TH> <TH> Description </TH>  </TR>
-##   <TR> <TD> 5 </TD> <TD> DayofMonth </TD> <TD> Day of Month </TD> </TR>
-##   <TR> <TD> 6 </TD> <TD> DayOfWeek </TD> <TD> Day of Week </TD> </TR>
-##   <TR> <TD> 7 </TD> <TD> FlightDate </TD> <TD> Flight Date (yyyymmdd) </TD> </TR>
-##   <TR> <TD> 11 </TD> <TD> Carrier </TD> <TD> Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code. </TD> </TR>
-##   <TR> <TD> 12 </TD> <TD> TailNum </TD> <TD> Tail Number </TD> </TR>
-##   <TR> <TD> 18 </TD> <TD> Origin </TD> <TD> Origin Airport </TD> </TR>
-##   <TR> <TD> 28 </TD> <TD> Dest </TD> <TD> Destination Airport </TD> </TR>
-##   <TR> <TD> 36 </TD> <TD> DepTime </TD> <TD> Actual Departure Time (local time: hhmm) </TD> </TR>
-##   <TR> <TD> 37 </TD> <TD> DepDelay </TD> <TD> Difference in minutes between scheduled and actual departure time. Early departures show negative numbers. </TD> </TR>
-##   <TR> <TD> 49 </TD> <TD> ArrDelay </TD> <TD> Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers. </TD> </TR>
-##   <TR> <TD> 55 </TD> <TD> Cancelled </TD> <TD> Cancelled Flight Indicator (1=Yes) </TD> </TR>
-##   <TR> <TD> 63 </TD> <TD> Distance </TD> <TD> Distance between airports (miles) </TD> </TR>
-##   <TR> <TD> 66 </TD> <TD> CarrierDelay </TD> <TD> Carrier Delay, in Minutes </TD> </TR>
-##   <TR> <TD> 67 </TD> <TD> WeatherDelay </TD> <TD> Weather Delay, in Minutes </TD> </TR>
-##   <TR> <TD> 70 </TD> <TD> LateAircraftDelay </TD> <TD> Late Aircraft Delay, in Minutes </TD> </TR>
-##    </TABLE>
+## % latex table generated in R 3.0.2 by xtable 1.7-3 package
+## % Wed Apr 23 10:52:45 2014
+## \begin{table}[ht]
+## \centering
+## \caption{Description of Table Columns} 
+## \begin{tabular}{p{3cm}p{7cm}}
+##   \hline
+## Variable & Description \\ 
+##   \hline
+## DayofMonth & Day of Month \\ 
+##   DayOfWeek & Day of Week \\ 
+##   FlightDate & Flight Date (yyyymmdd) \\ 
+##   Carrier & Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code. \\ 
+##   TailNum & Tail Number \\ 
+##   Origin & Origin Airport \\ 
+##   Dest & Destination Airport \\ 
+##   DepTime & Actual Departure Time (local time: hhmm) \\ 
+##   DepDelay & Difference in minutes between scheduled and actual departure time. Early departures show negative numbers. \\ 
+##   ArrDelay & Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers. \\ 
+##   Cancelled & Cancelled Flight Indicator (1=Yes) \\ 
+##   Distance & Distance between airports (miles) \\ 
+##   CarrierDelay & Carrier Delay, in Minutes \\ 
+##   WeatherDelay & Weather Delay, in Minutes \\ 
+##   LateAircraftDelay & Late Aircraft Delay, in Minutes \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+```
+
+```r
+# print(codebook.table,type='html')
 ```
 
 We can add this file to our database using the following:
@@ -212,7 +221,8 @@ ggplot(delay, aes(dist, delay)) + geom_point(aes(size = count), alpha = 1/2) +
 
 Most filghts are middle distance or short distance flights.
 
-The average delay rate of middle average distance(600-900) flights is mmore  than that of short(<600) and long average distance(>900).
+The average delay rate of middle average distance(600-900) flights is more than that of short and long average distance.
+
 
 ```r
 destinations <- group_by(dfw1, Dest)
@@ -320,7 +330,7 @@ of the day. This may be due to a domino effect as one late
 plane causes backups at terminals
 and on the runway leading to more delays for the airline.
 This causes the early morning flights to generally have a delay of more than one hour.
-The carriers most effected by this seem to be MQ (whose delays grow quickly at the end of the day),
+The carriers most affected by this seem to be MQ (whose delays grow quickly at the end of the day),
 AA (which has the worst late flight delays and seems to be most effected at night)
 and OO which has no on time flights after 10:00 PM).
 
@@ -369,5 +379,5 @@ qplot(DayofMonth, mprop.flights.can1, color = Carrier, data = can.dm, geom = "li
 
 From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
 
-After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to delay of thousands of flights and nearly a thousannd flights canceled.
+After checking the news, It's said that there is a big ice storm on December 6th, and continued on December 7th, and this leads to delay of thousands of flights and nearly a thousand flights canceled.
  -->
