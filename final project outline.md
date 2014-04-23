@@ -33,12 +33,19 @@ library(ggplot2)
 library(XML)
 library(DBI)
 library(RSQLite)
+
+library(plyr)
+library(xtable)
 library(dplyr)
 ```
 
 ```
 ## 
 ## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:plyr':
+## 
+##     arrange, desc, failwith, id, mutate, summarise
 ## 
 ## The following objects are masked from 'package:stats':
 ## 
@@ -47,23 +54,6 @@ library(dplyr)
 ## The following objects are masked from 'package:base':
 ## 
 ##     intersect, setdiff, setequal, union
-```
-
-```r
-library(plyr)
-```
-
-```
-## 
-## Attaching package: 'plyr'
-## 
-## The following objects are masked from 'package:dplyr':
-## 
-##     arrange, desc, failwith, id, mutate, summarise
-```
-
-```r
-library(xtable)
 ```
 
 
@@ -115,37 +105,32 @@ choose.cols <- c("DayOfWeek", "DayofMonth", "TailNum", "FlightDate", "DepTime",
     "Cancelled", "Dest", "Origin", "Distance")
 codebook.use <- codebook[which(codebook[, 1] %in% choose.cols), ]
 codebook.table <- xtable(codebook.use, align = "p{1cm}p{3cm}p{7cm}", caption = "Description of Table Columns")
-print(codebook.table, include.rownames = FALSE, caption.placement = "top")
+# print(codebook.table,include.rownames=FALSE,caption.placement='top')
+print(codebook.table, type = "html")
 ```
 
 ```
-## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Mon Apr 21 23:26:14 2014
-## \begin{table}[ht]
-## \centering
-## \caption{Description of Table Columns} 
-## \begin{tabular}{p{3cm}p{7cm}}
-##   \hline
-## Variable & Description \\ 
-##   \hline
-## DayofMonth & Day of Month \\ 
-##   DayOfWeek & Day of Week \\ 
-##   FlightDate & Flight Date (yyyymmdd) \\ 
-##   Carrier & Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code. \\ 
-##   TailNum & Tail Number \\ 
-##   Origin & Origin Airport \\ 
-##   Dest & Destination Airport \\ 
-##   DepTime & Actual Departure Time (local time: hhmm) \\ 
-##   DepDelay & Difference in minutes between scheduled and actual departure time. Early departures show negative numbers. \\ 
-##   ArrDelay & Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers. \\ 
-##   Cancelled & Cancelled Flight Indicator (1=Yes) \\ 
-##   Distance & Distance between airports (miles) \\ 
-##   CarrierDelay & Carrier Delay, in Minutes \\ 
-##   WeatherDelay & Weather Delay, in Minutes \\ 
-##   LateAircraftDelay & Late Aircraft Delay, in Minutes \\ 
-##    \hline
-## \end{tabular}
-## \end{table}
+## <!-- html table generated in R 3.0.2 by xtable 1.7-3 package -->
+## <!-- Tue Apr 22 18:54:33 2014 -->
+## <TABLE border=1>
+## <CAPTION ALIGN="bottom"> Description of Table Columns </CAPTION>
+## <TR> <TH>  </TH> <TH> Variable </TH> <TH> Description </TH>  </TR>
+##   <TR> <TD> 5 </TD> <TD> DayofMonth </TD> <TD> Day of Month </TD> </TR>
+##   <TR> <TD> 6 </TD> <TD> DayOfWeek </TD> <TD> Day of Week </TD> </TR>
+##   <TR> <TD> 7 </TD> <TD> FlightDate </TD> <TD> Flight Date (yyyymmdd) </TD> </TR>
+##   <TR> <TD> 11 </TD> <TD> Carrier </TD> <TD> Code assigned by IATA and commonly used to identify a carrier. As the same code may have been assigned to different carriers over time, the code is not always unique. For analysis, use the Unique Carrier Code. </TD> </TR>
+##   <TR> <TD> 12 </TD> <TD> TailNum </TD> <TD> Tail Number </TD> </TR>
+##   <TR> <TD> 18 </TD> <TD> Origin </TD> <TD> Origin Airport </TD> </TR>
+##   <TR> <TD> 28 </TD> <TD> Dest </TD> <TD> Destination Airport </TD> </TR>
+##   <TR> <TD> 36 </TD> <TD> DepTime </TD> <TD> Actual Departure Time (local time: hhmm) </TD> </TR>
+##   <TR> <TD> 37 </TD> <TD> DepDelay </TD> <TD> Difference in minutes between scheduled and actual departure time. Early departures show negative numbers. </TD> </TR>
+##   <TR> <TD> 49 </TD> <TD> ArrDelay </TD> <TD> Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers. </TD> </TR>
+##   <TR> <TD> 55 </TD> <TD> Cancelled </TD> <TD> Cancelled Flight Indicator (1=Yes) </TD> </TR>
+##   <TR> <TD> 63 </TD> <TD> Distance </TD> <TD> Distance between airports (miles) </TD> </TR>
+##   <TR> <TD> 66 </TD> <TD> CarrierDelay </TD> <TD> Carrier Delay, in Minutes </TD> </TR>
+##   <TR> <TD> 67 </TD> <TD> WeatherDelay </TD> <TD> Weather Delay, in Minutes </TD> </TR>
+##   <TR> <TD> 70 </TD> <TD> LateAircraftDelay </TD> <TD> Late Aircraft Delay, in Minutes </TD> </TR>
+##    </TABLE>
 ```
 
 We can add this file to our database using the following:
@@ -204,46 +189,64 @@ We decided to use Dallas/Fort Worth Airport (DFW) as orgin.
 # qry will now work as a connector to the table 'myFlights' in my_db
 qry <- tbl(my_db, "myFlights")
 
+
+
 # We only want to connect to when Origin is 'DFW'
-qry <- filter(qry, Origin == "DFW")
+qry1 <- filter(qry, Origin == "DFW")
 
 # Lets get all those observations
-dfw1 = collect(qry)
-# and make an ugly plot
-qplot(log(DepDelay), geom = "density", alpha = 0.1, facets = DayOfWeek ~ ., 
-    fill = as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0), ])
-```
+dfw1 = collect(qry1)
 
-![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-101.png) 
+planes <- group_by(dfw1, TailNum)
+delay <- dplyr::summarise(planes, count = n(), dist = mean(Distance, na.rm = TRUE), 
+    delay = mean(ArrDelay, na.rm = TRUE))
+delay <- filter(delay, count > 20, dist < 2000)
 
-```r
-
-dfw1$gross.time <- round(dfw1$DepTime/100) * 60 + 100 * ((dfw1$DepTime/100) - 
-    round(dfw1$DepTime/100))
-dfw1$gross.hour <- round(dfw1$gross.time/60)
-
-qplot(as.factor(gross.hour), DepDelay, fill = Carrier, data = dfw1, geom = "boxplot") + 
-    facet_wrap(~Carrier)
+ggplot(delay, aes(dist, delay)) + geom_point(aes(size = count), alpha = 1/2) + 
+    geom_smooth() + scale_size_area()
 ```
 
 ```
-## Warning: Removed 19 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 1667 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 4 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 20 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 309 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 1 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 1146 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 26 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 14 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 41 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 16 rows containing non-finite values (stat_boxplot).
-## Warning: Removed 5 rows containing non-finite values (stat_boxplot).
+## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
 ```
 
-![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-102.png) 
+```
+## Warning: Removed 1 rows containing missing values (stat_smooth).
+## Warning: Removed 1 rows containing missing values (geom_point).
+```
 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+
+The average delay is more for middle average distance(600-900) than that of short and long average distance.
+```
+destinations <- group_by(dfw1, Dest)
+destairp<-dplyr::summarise(destinations,
+  planes = n_distinct(TailNum),
+  flights=n()
+)
+arrange(destairp,desc(flights))
+
+ qry2 <- filter(qry, Dest == 'DFW')
+   dfw2=collect(qry2)
+origins <- group_by(dfw2, Origin)
+oriairp<-dplyr::summarise(origins,
+  planes1 = n_distinct(TailNum),
+  flights1=n()
+)
+arrange(oriairp,desc(flights1))
+```
+From the reslut, the first five most frequenly connected airports with DFW are LAX,ATL,DEN,ORD and SFO.
+```
+#and make an ugly plot
+   qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
+
+
+
+   dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
+   dfw1$gross.hour <- round(dfw1$gross.time/60)
+
+   qplot(as.factor(gross.hour),DepDelay, fill=Carrier, data=dfw1, geom='boxplot')+facet_wrap(~Carrier)
+```
 Notice from the boxplots that the time of delay grows for 
 most airlines over the course
 of the day. This may be due to a domino effect as one late 
@@ -261,7 +264,6 @@ become visible by 8:00 AM)
 
 ```r
 qry2 <- filter(qry, Dest == "DFW")
-
 dfw2 = collect(qry2)
 dfw3 <- rbind(dfw1, dfw2)
 
@@ -300,6 +302,5 @@ qplot(DayofMonth, mprop.flights.can, color = Carrier, data = can.dm, geom = "lin
 
 From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
 
-After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to nearly 1000 flights canceled.
-
+After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to delay of thousands of flights and nearly a thousannd flights canceled.
  -->

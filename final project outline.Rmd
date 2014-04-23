@@ -32,9 +32,10 @@ library(ggplot2)
 library(XML)
 library(DBI)
 library(RSQLite)
-library(dplyr)
+
 library(plyr)
 library(xtable)
+library(dplyr)
 ```
 
 The package RSQLite can be used as in the example to create
@@ -71,7 +72,8 @@ choose.cols <- c("DayOfWeek","DayofMonth","TailNum", "FlightDate", "DepTime","Ca
                      "LateAircraftDelay","Cancelled", "Dest", "Origin", "Distance")
    codebook.use <- codebook[which(codebook[,1] %in% choose.cols),]
    codebook.table <- xtable(codebook.use,align='p{1cm}p{3cm}p{7cm}',caption='Description of Table Columns')
-   print(codebook.table,include.rownames=FALSE,caption.placement='top')
+   #print(codebook.table,include.rownames=FALSE,caption.placement='top')
+ print(codebook.table,type="html")
 ```
 We can add this file to our database using the following:
 ```{r}
@@ -103,13 +105,50 @@ We decided to use Dallas/Fort Worth Airport (DFW) as orgin.
 #qry will now work as a connector to the table 'myFlights' in my_db
    qry <- tbl(my_db, 'myFlights')
 
-   #We only want to connect to when Origin is 'DFW'
-   qry <- filter(qry, Origin == 'DFW')
 
+
+   #We only want to connect to when Origin is 'DFW'
+   qry1 <- filter(qry, Origin == 'DFW')
+   
    #Lets get all those observations
-   dfw1=collect(qry)
+   dfw1=collect(qry1)
+
+planes <- group_by(dfw1, TailNum)
+delay <- dplyr::summarise(planes,
+  count = n(),
+  dist = mean(Distance, na.rm = TRUE),
+  delay = mean(ArrDelay, na.rm = TRUE))
+delay <- filter(delay, count > 20, dist < 2000)
+
+ggplot(delay, aes(dist, delay)) +
+  geom_point(aes(size = count), alpha = 1/2) +
+  geom_smooth() +
+  scale_size_area()
+```
+The average delay is more for middle average distance(600-900) than that of short and long average distance.
+```
+destinations <- group_by(dfw1, Dest)
+destairp<-dplyr::summarise(destinations,
+  planes = n_distinct(TailNum),
+  flights=n()
+)
+arrange(destairp,desc(flights))
+
+ qry2 <- filter(qry, Dest == 'DFW')
+   dfw2=collect(qry2)
+origins <- group_by(dfw2, Origin)
+oriairp<-dplyr::summarise(origins,
+  planes1 = n_distinct(TailNum),
+  flights1=n()
+)
+arrange(oriairp,desc(flights1))
+```
+From the reslut, the first five most frequenly connected airports with DFW are LAX,ATL,DEN,ORD and SFO.
+```
 #and make an ugly plot
    qplot(log(DepDelay), geom='density', alpha=.1, facets=DayOfWeek~., fill=as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0),])
+
+
 
    dfw1$gross.time <- round(dfw1$DepTime/100)*60+ 100*((dfw1$DepTime/100)-round(dfw1$DepTime/100)) 
    dfw1$gross.hour <- round(dfw1$gross.time/60)
@@ -131,8 +170,7 @@ several midday flights where the number of delayed departures grows (the boxplot
 become visible by 8:00 AM) 
 
 ```{r}
- qry2 <- filter(qry, Dest == 'DFW')
-
+   qry2 <- filter(qry, Dest == 'DFW')
    dfw2=collect(qry2)
    dfw3 <- rbind(dfw1,dfw2)
 
@@ -161,6 +199,5 @@ can.dm <-ddply(dfw3, .(Carrier,DayofMonth), summarise,
 ```
 From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
 
-After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to nearly 1000 flights canceled.
-
+After checking the news, It's said that there is a big ice storm on November on November 6th, and continued on December 7th, and this leads to delay of thousands of flights and nearly a thousannd flights canceled.
  -->
