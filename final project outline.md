@@ -1,25 +1,27 @@
 Final Project  Junzhao Hu
 ========================================================
-Topic Name: About the flight data of Dallas/Fort Worth Airport (DFW).
+Topic Name: Flight data of Dallas/Fort Worth Airport (DFW).
 
 Below is the link for the data, I downloaded data for  November and December of 2013.
-
-I am interested in several things:
-
-1 Is there a day of the week/ time of day effect on departure or arrival delays
-
-2 Which airports cancel or delay the most from Dallas/Fort Worth Airport (DFW).
-
-3 Which Carrier delays or cancels most.
-
-4 What kind of factors affect the delay time of the flight(like distance,depart time, arrive time)
-
-5 What's the main reason for the delay and cancelation.
-
 
 
 **Links:**
 * [http://www.transtats.bts.gov/DL_SelectFields.asp?Table_ID=236&DB_Short_Name=On-Time]
+
+
+I am interested in several things:
+
+1 Is there a day of the week/ time of day effect on departure or arrival delays for the flights
+
+2 Which airports cancel or delay the most from Dallas/Fort Worth Airport (DFW).
+
+3 Which Carrier delays or cancels most flights.
+
+4 What kind of factors affect the delay time of the flights(like distance,depart time, arrive time)
+
+5 What's the main reason for the delay and cancelation.
+
+
 
 We used the following packages in this lab report:
 
@@ -95,8 +97,7 @@ choose the following variables from the set:
 
 ```r
 choose.cols <- c("DayOfWeek", "DayofMonth", "TailNum", "FlightDate", "DepTime", 
-    "Carrier", "DepDelay", "ArrDelay", "CarrierDelay", "WeatherDelay", "LateAircraftDelay", 
-    "Cancelled", "Dest", "Origin", "Distance")
+    "Carrier", "DepDelay", "ArrDelay", "Cancelled", "Dest", "Origin", "Distance")
 codebook.use <- codebook[which(codebook[, 1] %in% choose.cols), ]
 codebook.table <- xtable(codebook.use, align = "p{1cm}p{3cm}p{7cm}", caption = "Description of Table Columns")
 print(codebook.table, include.rownames = FALSE, caption.placement = "top")
@@ -104,7 +105,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Wed Apr 23 14:34:46 2014
+## % Wed Apr 23 22:39:01 2014
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Description of Table Columns} 
@@ -124,9 +125,6 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ##   ArrDelay & Difference in minutes between scheduled and actual arrival time. Early arrivals show negative numbers. \\ 
 ##   Cancelled & Cancelled Flight Indicator (1=Yes) \\ 
 ##   Distance & Distance between airports (miles) \\ 
-##   CarrierDelay & Carrier Delay, in Minutes \\ 
-##   WeatherDelay & Weather Delay, in Minutes \\ 
-##   LateAircraftDelay & Late Aircraft Delay, in Minutes \\ 
 ##    \hline
 ## \end{tabular}
 ## \end{table}
@@ -199,15 +197,18 @@ qry1 <- filter(qry, Origin == "DFW")
 dfw1 = collect(qry1)
 # Find out the relation between distance and arrival delay.
 planes <- group_by(dfw1, TailNum)
-delay <- dplyr::summarise(planes, count = n(), dist = mean(Distance, na.rm = TRUE), 
-    delay = mean(ArrDelay, na.rm = TRUE))
-delay <- filter(delay, count > 20, dist < 2000)
+delay <- dplyr::summarise(planes, count = n(), averagedist = mean(Distance, 
+    na.rm = TRUE), averagedelay = mean(ArrDelay, na.rm = TRUE))
+delay <- filter(delay, count > 20, averagedist < 2000)
 
-ggplot(delay, aes(dist, delay)) + geom_point(aes(size = count), alpha = 1/2) + 
-    geom_smooth() + scale_size_area()
+ggplot(delay, aes(averagedist, averagedelay)) + geom_point(aes(size = count), 
+    alpha = 1/2) + geom_smooth() + scale_size_area() + opts(title = expression("Figure 1: average distance vs average delay"))
 ```
 
 ```
+## 'opts' is deprecated. Use 'theme' instead. (Deprecated; last used in version 0.9.1)
+## Setting the plot title with opts(title="...") is deprecated.
+##  Use labs(title="...") or ggtitle("...") instead. (Deprecated; last used in version 0.9.1)
 ## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
 ```
 
@@ -253,38 +254,53 @@ qry2 <- filter(qry, Dest == "DFW")
 dfw2 = collect(qry2)
 origins <- group_by(dfw2, Origin)
 oriairp <- dplyr::summarise(origins, planes1 = n_distinct(TailNum), flights1 = n(), 
-    mprop.flights1.can = mean(Cancelled, na.rm = T))
+    cancelrate1 = mean(Cancelled, na.rm = T))
 arrange(oriairp, desc(flights1))
 ```
 
 ```
 ## Source: local data frame [143 x 4]
 ## 
-##    Origin planes1 flights1 mprop.flights1.can
-## 1     LAX     464     1348            0.04674
-## 2     ATL     347     1201            0.04829
-## 3     DEN     529     1126            0.03996
-## 4     ORD     320     1103            0.05077
-## 5     SFO     452     1013            0.04146
-## 6     PHX     353      868            0.04839
-## 7     SAT     164      862            0.07077
-## 8     IAH     387      843            0.04982
-## 9     CLT     234      807            0.05328
-## 10    AUS     238      803            0.06351
-## ..    ...     ...      ...                ...
+##    Origin planes1 flights1 cancelrate1
+## 1     LAX     464     1348     0.04674
+## 2     ATL     347     1201     0.04829
+## 3     DEN     529     1126     0.03996
+## 4     ORD     320     1103     0.05077
+## 5     SFO     452     1013     0.04146
+## 6     PHX     353      868     0.04839
+## 7     SAT     164      862     0.07077
+## 8     IAH     387      843     0.04982
+## 9     CLT     234      807     0.05328
+## 10    AUS     238      803     0.06351
+## ..    ...     ...      ...         ...
 ```
 
 ```r
-daf <- arrange(oriairp, desc(mprop.flights1.can))
-ggplot(daf, aes(as.factor(Origin), mprop.flights1.can)) + geom_point(aes(size = flights1), 
-    alpha = 1/2)
+daf <- arrange(oriairp, desc(cancelrate1))
+ggplot(daf, aes(as.factor(Origin), cancelrate1)) + geom_point(aes(size = flights1), 
+    alpha = 0.8) + opts(title = expression("Figure 2: Cancel rate of origin airport to DFW"))
+```
+
+```
+## 'opts' is deprecated. Use 'theme' instead. (Deprecated; last used in version 0.9.1)
+## Setting the plot title with opts(title="...") is deprecated.
+##  Use labs(title="...") or ggtitle("...") instead. (Deprecated; last used in version 0.9.1)
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-111.png) 
 
 ```r
 daf1 <- filter(daf, flights1 > 500)
-qplot(as.factor(Origin), mprop.flights1.can, data = daf1)
+# qplot(as.factor(Origin),cancelrate1,data=daf1,main='Figure 3:Cancel rate
+# of close dest airport from DFW ')
+ggplot(daf1, aes(as.factor(Origin), cancelrate1)) + geom_point(aes(size = flights1), 
+    alpha = 1) + opts(title = expression("Figure 3: Cancel rate of dest airport from DFW"))
+```
+
+```
+## 'opts' is deprecated. Use 'theme' instead. (Deprecated; last used in version 0.9.1)
+## Setting the plot title with opts(title="...") is deprecated.
+##  Use labs(title="...") or ggtitle("...") instead. (Deprecated; last used in version 0.9.1)
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-112.png) 
@@ -299,7 +315,7 @@ qry1 <- filter(qry, Origin == "DFW")
 dfw1 = collect(qry1)
 # and make an ugly plot
 qplot(log(DepDelay), geom = "density", alpha = 0.1, facets = DayOfWeek ~ ., 
-    fill = as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0), ])
+    fill = as.factor(DayOfWeek), data = dfw1[which(dfw1$DepDelay > 0), ], main = "Figure 4: Density plot")
 ```
 
 ![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-121.png) 
@@ -308,16 +324,8 @@ qplot(log(DepDelay), geom = "density", alpha = 0.1, facets = DayOfWeek ~ .,
 dfw1$gross.time <- round(dfw1$DepTime/100) * 60 + 100 * ((dfw1$DepTime/100) - 
     round(dfw1$DepTime/100))
 dfw1$gross.hour <- round(dfw1$gross.time/60)
-plot(WeatherDelay, data = dfw1)
-```
-
-```
-## Error: object 'WeatherDelay' not found
-```
-
-```r
-qplot(as.factor(gross.hour), DepDelay, fill = Carrier, data = dfw1, geom = "boxplot") + 
-    facet_wrap(~Carrier)
+qplot(as.factor(gross.hour), DepDelay, fill = Carrier, data = dfw1, geom = "boxplot", 
+    main = "Figure 5: time VS departure delay") + facet_wrap(~Carrier)
 ```
 
 ```
@@ -361,8 +369,8 @@ dfw2 = collect(qry2)
 dfw3 <- rbind(dfw1, dfw2)
 
 can.d <- ddply(dfw3, .(Carrier, DayOfWeek), summarise, total.flights.can = sum(Cancelled, 
-    na.rm = T), prop.flights.can = mean(Cancelled, na.rm = T))
-qplot(DayOfWeek, prop.flights.can, color = Carrier, data = can.d, geom = "line") + 
+    na.rm = T), cancelrate = mean(Cancelled, na.rm = T))
+qplot(DayOfWeek, cancelrate, color = Carrier, data = can.d, geom = "line", main = "Figure 6: carrier VS cancel rate") + 
     facet_wrap(~Carrier)
 ```
 
@@ -370,8 +378,8 @@ qplot(DayOfWeek, prop.flights.can, color = Carrier, data = can.d, geom = "line")
 
 ```r
 
-qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "boxplot") + 
-    facet_wrap(~Carrier)
+qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "boxplot", 
+    main = "Figure 7: relation between cancelation and flight distance") + facet_wrap(~Carrier)
 ```
 
 ![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-132.png) 
@@ -385,9 +393,9 @@ What's the reason for so many delays and cancelations? Is there a day that has v
 
 ```r
 can.dm <- ddply(dfw3, .(Carrier, DayofMonth), summarise, mtotal.flights.can1 = sum(Cancelled, 
-    na.rm = T), mprop.flights.can1 = mean(Cancelled, na.rm = T))
-qplot(DayofMonth, mprop.flights.can1, color = Carrier, data = can.dm, geom = "line") + 
-    facet_wrap(~Carrier)
+    na.rm = T), cancelrate1 = mean(Cancelled, na.rm = T))
+qplot(DayofMonth, cancelrate1, color = Carrier, data = can.dm, geom = "line", 
+    main = "Figure 8: carrier VS cancel rate") + facet_wrap(~Carrier)
 ```
 
 ![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
