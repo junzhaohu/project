@@ -1,6 +1,9 @@
-Final Project  Junzhao Hu
+Flight data of Dallas/Fort Worth Airport (DFW)  
+
+Junzhao Hu
+
 ========================================================
-Topic Name: Flight data of Dallas/Fort Worth Airport (DFW).
+Part 1 : Introduction
 
 Below is the link for the data, I downloaded data for  November and December of 2013.
 
@@ -21,7 +24,7 @@ I am interested in several things:
 
 5 What's the main reason for the delay and cancelation.
 
-
+Part 2 : Data Selction and Analysis
 
 We used the following packages in this lab report:
 
@@ -105,7 +108,7 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-3 package
-## % Wed Apr 23 22:39:01 2014
+## % Thu Apr 24 22:14:40 2014
 ## \begin{table}[ht]
 ## \centering
 ## \caption{Description of Table Columns} 
@@ -128,10 +131,6 @@ print(codebook.table, include.rownames = FALSE, caption.placement = "top")
 ##    \hline
 ## \end{tabular}
 ## \end{table}
-```
-
-```r
-# print(codebook.table,type='html')
 ```
 
 We can add this file to our database using the following:
@@ -169,7 +168,7 @@ library("RSQLite.extfuns")
 my_db <- src_sqlite("flights")
 ```
 
-We can get the number of rows using 
+We can get the number of rows using: 
 
 ```r
 tbl(my_db, sql("SELECT COUNT(*) FROM myFlights"))
@@ -202,13 +201,10 @@ delay <- dplyr::summarise(planes, count = n(), averagedist = mean(Distance,
 delay <- filter(delay, count > 20, averagedist < 2000)
 
 ggplot(delay, aes(averagedist, averagedelay)) + geom_point(aes(size = count), 
-    alpha = 1/2) + geom_smooth() + scale_size_area() + opts(title = expression("Figure 1: average distance vs average delay"))
+    alpha = 1/2) + geom_smooth() + scale_size_area() + ggtitle("Figure 1: average distance vs average delay")
 ```
 
 ```
-## 'opts' is deprecated. Use 'theme' instead. (Deprecated; last used in version 0.9.1)
-## Setting the plot title with opts(title="...") is deprecated.
-##  Use labs(title="...") or ggtitle("...") instead. (Deprecated; last used in version 0.9.1)
 ## geom_smooth: method="auto" and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.
 ```
 
@@ -219,94 +215,82 @@ ggplot(delay, aes(averagedist, averagedelay)) + geom_point(aes(size = count),
 
 ![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
 
-Most filghts are middle distance or short distance flights.
+In Figure 1, we see that most filghts are middle distance or short distance flights.
 
-The average delay rate of middle average distance(600-900) flights is more than that of short and long average distance.
+And the average delay rate of middle average distance(600-900) flights is more than that of short and long average distance.
 
 
 ```r
 # Find out the airports that are closedly connceted to DFW.
 destinations <- group_by(dfw1, Dest)
-destairp <- dplyr::summarise(destinations, planes = n_distinct(TailNum), flights = n())
+destairp <- dplyr::summarise(destinations, planes = n_distinct(TailNum), flights = n(), 
+    cancelrate = mean(Cancelled, na.rm = T))
 arrange(destairp, desc(flights))
-```
-
-```
-## Source: local data frame [143 x 3]
-## 
-##    Dest planes flights
-## 1   LAX    465    1348
-## 2   ATL    350    1201
-## 3   ORD    344    1140
-## 4   DEN    507    1087
-## 5   SFO    435    1017
-## 6   IAH    447     900
-## 7   PHX    360     868
-## 8   SAT    164     862
-## 9   CLT    234     807
-## 10  AUS    240     802
-## ..  ...    ...     ...
-```
-
-```r
-
-qry2 <- filter(qry, Dest == "DFW")
-dfw2 = collect(qry2)
-origins <- group_by(dfw2, Origin)
-oriairp <- dplyr::summarise(origins, planes1 = n_distinct(TailNum), flights1 = n(), 
-    cancelrate1 = mean(Cancelled, na.rm = T))
-arrange(oriairp, desc(flights1))
 ```
 
 ```
 ## Source: local data frame [143 x 4]
 ## 
-##    Origin planes1 flights1 cancelrate1
-## 1     LAX     464     1348     0.04674
-## 2     ATL     347     1201     0.04829
-## 3     DEN     529     1126     0.03996
-## 4     ORD     320     1103     0.05077
-## 5     SFO     452     1013     0.04146
-## 6     PHX     353      868     0.04839
-## 7     SAT     164      862     0.07077
-## 8     IAH     387      843     0.04982
-## 9     CLT     234      807     0.05328
-## 10    AUS     238      803     0.06351
-## ..    ...     ...      ...         ...
+##    Dest planes flights cancelrate
+## 1   LAX    465    1348    0.04674
+## 2   ATL    350    1201    0.05162
+## 3   ORD    344    1140    0.05088
+## 4   DEN    507    1087    0.03772
+## 5   SFO    435    1017    0.03933
+## 6   IAH    447     900    0.05222
+## 7   PHX    360     868    0.04954
+## 8   SAT    164     862    0.07077
+## 9   CLT    234     807    0.05081
+## 10  AUS    240     802    0.06359
+## ..  ...    ...     ...        ...
 ```
 
 ```r
-daf <- arrange(oriairp, desc(cancelrate1))
-ggplot(daf, aes(as.factor(Origin), cancelrate1)) + geom_point(aes(size = flights1), 
-    alpha = 0.8) + opts(title = expression("Figure 2: Cancel rate of origin airport to DFW"))
+qry2 <- filter(qry, Dest == "DFW")
+dfw2 = collect(qry2)
+origins <- group_by(dfw2, Origin)
+oriairp <- dplyr::summarise(origins, planes1 = n_distinct(TailNum), flights1 = n(), 
+    cancelrate1 = mean(Cancelled, na.rm = T))
+arrange(destairp, desc(flights))
 ```
 
 ```
-## 'opts' is deprecated. Use 'theme' instead. (Deprecated; last used in version 0.9.1)
-## Setting the plot title with opts(title="...") is deprecated.
-##  Use labs(title="...") or ggtitle("...") instead. (Deprecated; last used in version 0.9.1)
+## Source: local data frame [143 x 4]
+## 
+##    Dest planes flights cancelrate
+## 1   LAX    465    1348    0.04674
+## 2   ATL    350    1201    0.05162
+## 3   ORD    344    1140    0.05088
+## 4   DEN    507    1087    0.03772
+## 5   SFO    435    1017    0.03933
+## 6   IAH    447     900    0.05222
+## 7   PHX    360     868    0.04954
+## 8   SAT    164     862    0.07077
+## 9   CLT    234     807    0.05081
+## 10  AUS    240     802    0.06359
+## ..  ...    ...     ...        ...
+```
+
+```r
+daf <- arrange(destairp, desc(cancelrate))
+ggplot(daf, aes(as.factor(Dest), cancelrate)) + geom_point(aes(size = flights), 
+    alpha = 0.8) + ggtitle("Figure 2: Cancel rate of origin airport from DFW")
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-111.png) 
 
 ```r
-daf1 <- filter(daf, flights1 > 500)
-# qplot(as.factor(Origin),cancelrate1,data=daf1,main='Figure 3:Cancel rate
-# of close dest airport from DFW ')
-ggplot(daf1, aes(as.factor(Origin), cancelrate1)) + geom_point(aes(size = flights1), 
-    alpha = 1) + opts(title = expression("Figure 3: Cancel rate of dest airport from DFW"))
-```
-
-```
-## 'opts' is deprecated. Use 'theme' instead. (Deprecated; last used in version 0.9.1)
-## Setting the plot title with opts(title="...") is deprecated.
-##  Use labs(title="...") or ggtitle("...") instead. (Deprecated; last used in version 0.9.1)
+daf1 <- filter(daf, flights > 500)
+ggplot(daf1, aes(as.factor(Dest), cancelrate)) + geom_point(aes(size = flights), 
+    alpha = 1) + ggtitle("Figure 3: Cancel rate of dest airport from DFW")
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-112.png) 
 
-From the reslut, the first five most frequenly connected airports with DFW are LAX,ATL,DEN,ORD and SFO.
-For total flights more than 500, flights go to HOU airport have the highest cancelation rate(12%) from DFW airport.
+From the table above, the first five most frequenly connected airports with DFW are LAX,ATL,DEN,ORD and SFO, and all the five airports are  and near to Dallas and has very close relation with the city.
+
+
+In Figure 3, for the total flights more than 500 within two months, flights go to HOU airport have the highest cancelation rate(12%) from DFW airport.
 
 ```r
 qry <- tbl(my_db, "myFlights")
@@ -346,8 +330,10 @@ qplot(as.factor(gross.hour), DepDelay, fill = Carrier, data = dfw1, geom = "boxp
 
 ![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-122.png) 
 
+In Figure 4, the density plot show that the delay time for most delayed flights are less than 150 minutes.
 
-Notice from the boxplots that the time of delay grows for 
+
+In Figure 5, notice from the boxplots that the time of delay grows for 
 most airlines over the course
 of the day. This may be due to a domino effect as one late 
 plane causes backups at terminals
@@ -384,7 +370,7 @@ qplot(as.logical(Cancelled), Distance, color = Carrier, data = dfw3, geom = "box
 
 ![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-132.png) 
 
-Flights that occur later in the week and on the weekend are more often cancelled,
+In Figure 6 and 7, flights that occur later in the week and on the weekend are more often cancelled,
 with airlines EV, MQ and 9E cancelling more than 15% of flights. 9E is more likely to cancel 
 long flights while EV is more likely to cancel shorter flights. The rest of the 
 airlines seem to have no relationship between flight length and cancellation.
@@ -403,4 +389,19 @@ qplot(DayofMonth, cancelrate1, color = Carrier, data = can.dm, geom = "line",
 From the graph, we see that on November 7th or Decmeber 7th, there is one day that greatly influenced the cancelation.
 
 After checking the news, It's said that there is a big ice storm on December 6th, and continued on December 7th, and this leads to delay of thousands of flights and nearly a thousand flights canceled.
+
+
+Part 3: Conclusion:
+•  Most flights are short distance and middle distance flights which are less 1000 miles, and most flights goes to (or from) nearby big cities which have close economic relation with Dallas. 
+
+•	Most cancelation rates are from 4% to 10%.
+
+•	But the cancelation rate is very high during the weekend (EV, MQ and 9E have cancelation rate more than 15%), that is because there is a ice storm in December 7th, which just happened in Saturday, and lead to cancelation of nearly a thousand flights.
+
+•	The average delay time for long distance flights (>1000) is shorter than that of short and middle distance flights.
+
+•	Although there are many delays, but most of the delay time for the flights are less than two and half hours.
+
+
+
  -->
