@@ -14,7 +14,7 @@ Below is the link for the data, I downloaded data for  November and December of 
 
 I am interested in several things:
 
-1 Is there a day of the week/ time of day effect on departure or arrival delays for the flights
+1 Is there a day of the week/ time of day effect on departure or arrival delays for the flights.
 
 2 Which airports cancel or delay the most from Dallas/Fort Worth Airport (DFW).
 
